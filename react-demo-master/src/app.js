@@ -27,7 +27,7 @@ class App extends React.Component {
 
                         <Route
                             exact
-                            path='/person'
+                            path='/admin'
                             render={() => <PersonContainer/>}
                         />
 

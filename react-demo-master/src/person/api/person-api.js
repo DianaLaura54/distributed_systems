@@ -3,7 +3,7 @@ import RestApiClient from "../../commons/api/rest-client";
 
 
 const endpoint = {
-    person: '/person'
+    person: '/admin'
 };
 
 function getPersons(callback) {
@@ -37,9 +37,33 @@ function postPerson(user, callback){
 
     RestApiClient.performRequest(request, callback);
 }
+function deletePerson(params, callback) {
+    let request = new Request(HOST.backend_api + endpoint.person + params.id, {
+        method: 'DELETE',
+    });
+    console.log(request.url);
+    RestApiClient.performRequest(request, callback);
+}
+
+function updatePerson(params, user, callback) {
+    let request = new Request(HOST.backend_api + endpoint.person + '/' + params.id, {
+        method: 'PUT', // Use PUT method for updating
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user)
+    });
+
+    console.log("URL: " + request.url);
+
+    RestApiClient.performRequest(request, callback);
+}
 
 export {
     getPersons,
     getPersonById,
-    postPerson
+    postPerson,
+    deletePerson,
+    updatePerson
 };

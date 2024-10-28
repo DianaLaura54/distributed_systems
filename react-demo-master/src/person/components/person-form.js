@@ -33,30 +33,10 @@ class PersonForm extends React.Component {
                         isRequired: true
                     }
                 },
-                email: {
-                    value: '',
-                    placeholder: 'Email...',
-                    valid: false,
-                    touched: false,
-                    validationRules: {
-                        emailValidator: true
-                    }
-                },
-                age: {
-                    value: '',
-                    placeholder: 'Age...',
-                    valid: false,
-                    touched: false,
-                },
-                address: {
-                    value: '',
-                    placeholder: 'Cluj, Zorilor, Str. Lalelelor 21...',
-                    valid: false,
-                    touched: false,
-                },
+            
                 role: {
                     value: '',
-                    placeholder: 'admin or user...',
+                    placeholder: 'admin or user..',
                     valid: false,
                     touched: false,
                 },
@@ -65,7 +45,7 @@ class PersonForm extends React.Component {
                     placeholder: '123..',
                     valid: false,
                     touched: false,
-                },
+                }
             }
         };
 
@@ -121,11 +101,9 @@ class PersonForm extends React.Component {
     handleSubmit() {
         let person = {
             name: this.state.formControls.name.value,
-            email: this.state.formControls.email.value,
-            age: this.state.formControls.age.value,
-            address: this.state.formControls.address.value,
             role: this.state.formControls.role.value,
-            password: this.state.formControls.password.value
+            password: this.state.formControls.password.value,
+            
         };
 
         console.log(person);
@@ -149,69 +127,28 @@ class PersonForm extends React.Component {
                     <div className={"error-message row"}> * Name must have at least 3 characters </div>}
                 </FormGroup>
 
-                <FormGroup id='email'>
-                    <Label for='emailField'> Email: </Label>
-                    <Input name='email' id='emailField' placeholder={this.state.formControls.email.placeholder}
-                           onChange={this.handleChange}
-                           defaultValue={this.state.formControls.email.value}
-                           touched={this.state.formControls.email.touched? 1 : 0}
-                           valid={this.state.formControls.email.valid}
-                           required
-                    />
-                    {this.state.formControls.email.touched && !this.state.formControls.email.valid &&
-                    <div className={"error-message"}> * Email must have a valid format</div>}
-                </FormGroup>
-
-                <FormGroup id='address'>
-                    <Label for='addressField'> Address: </Label>
-                    <Input name='address' id='addressField' placeholder={this.state.formControls.address.placeholder}
-                           onChange={this.handleChange}
-                           defaultValue={this.state.formControls.address.value}
-                           touched={this.state.formControls.address.touched? 1 : 0}
-                           valid={this.state.formControls.address.valid}
-                           required
-                    />
-                </FormGroup>
-
-                <FormGroup id='age'>
-                    <Label for='ageField'> Age: </Label>
-                    <Input name='age' id='ageField' placeholder={this.state.formControls.age.placeholder}
-                           min={0} max={100} type="number"
-                           onChange={this.handleChange}
-                           defaultValue={this.state.formControls.age.value}
-                           touched={this.state.formControls.age.touched? 1 : 0}
-                           valid={this.state.formControls.age.valid}
-                           required
-                    />
-                </FormGroup>
-
-
                 <FormGroup id='role'>
-                    <Label for='roleField'> Role: </Label>
-                    <Input name='role' id='roleField' placeholder={this.state.formControls.role.placeholder}
-                           onChange={this.handleChange}
-                           defaultValue={this.state.formControls.role.value}
-                           touched={this.state.formControls.role.touched ? 1 : 0}
-                           valid={this.state.formControls.role.valid}
-                           required
-                />
-            </FormGroup>
+    <Label for='roleField'> Role: </Label>
+    <Input name='role' id='roleField' placeholder={this.state.formControls.role.placeholder}
+           onChange={this.handleChange}
+           defaultValue={this.state.formControls.role.value}
+           touched={this.state.formControls.role.touched ? 1 : 0}
+           valid={this.state.formControls.role.valid}
+           required
+    />
+</FormGroup>
+      <FormGroup id='password'>
+    <Label for='passwordField'> Password: </Label>
+    <Input type='password' name='password' id='passwordField' placeholder={this.state.formControls.password.placeholder}
+           onChange={this.handleChange}
+           defaultValue={this.state.formControls.password.value}
+           touched={this.state.formControls.password.touched ? 1 : 0}
+           valid={this.state.formControls.password.valid}
+           required
+    />
+          </FormGroup>
 
 
-
-            <FormGroup id='password'>
-                <Label for='passwordField'> Password: </Label>
-                <Input name='password' id='passwordField' placeholder={this.state.formControls.password.placeholder}
-                       onChange={this.handleChange}
-                       defaultValue={this.state.formControls.password.value}
-                       touched={this.state.formControls.password.touched ? 1 : 0}
-                       valid={this.state.formControls.password.valid}
-                       required
-                />
-            </FormGroup>
-
-
-                
                     <Row>
                         <Col sm={{size: '4', offset: 8}}>
                             <Button type={"submit"} disabled={!this.state.formIsValid} onClick={this.handleSubmit}>  Submit </Button>
