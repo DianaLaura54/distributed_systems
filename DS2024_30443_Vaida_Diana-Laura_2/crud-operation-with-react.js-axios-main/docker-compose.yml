@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  react:
+    image: front_img
+    ports:
+      - "3003:3000" 
+    environment:
+      - USER_SERVICE_HOST=person-service
+      - DEVICE_SERVICE_HOST=device-service
+    networks:
+      - demo_net
+
+networks:
+  demo_net:
+    external: true

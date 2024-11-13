@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  device-service:
+    image: image2
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_IP=device-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=1969
+      - DB_NAME=device-db
+    networks:
+      demo_net:
+        aliases:
+          - device-service
+
+  device-db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=device-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1969
+    volumes:
+      - device-db-data:/var/lib/postgresql/data  # Mount volume for database data
+    networks:
+      demo_net:
+
+networks:
+  demo_net:
+    external: true
+
+volumes:
+  device-db-data:
