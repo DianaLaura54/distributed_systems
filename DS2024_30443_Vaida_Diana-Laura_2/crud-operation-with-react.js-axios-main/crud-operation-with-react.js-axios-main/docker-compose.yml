@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  device-service:
+    image: image2
+    environment:
+      - DB_IP=host.docker.internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.device-ms.rule=PathPrefix(`/device`)"
+      - "traefik.http.services.device-ms.loadbalancer.server.port=8081"
+    networks:
+      demo_net:
+        aliases:
+          - device-service
+
+  person-service:
+    image: image3
+    environment:
+      - DB_IP=host.docker.internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.person-ms.rule=PathPrefix(`/person`)"
+      - "traefik.http.services.person-ms.loadbalancer.server.port=8080"
+    networks:
+      demo_net:
+        aliases:
+          - person-service
+
+  react:
+    image: front_img
+    environment:
+      - USER_SERVICE_HOST=person-service
+      - DEVICE_SERVICE_HOST=device-service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    networks:
+      - demo_net
+
+  monitoring-service:
+    image: monitoring_img
+    environment:
+      - DB_IP=host.docker.internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.monitoring-ms.rule=PathPrefix(`/monitoring`)"
+      - "traefik.http.services.monitoring-ms.loadbalancer.server.port=8082"
+    networks:
+      demo_net:
+        aliases:
+          - monitoring-service
+
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      demo_net:
+        aliases:
+          - traefik-service
+
+networks:
+  demo_net:
+    external: true
