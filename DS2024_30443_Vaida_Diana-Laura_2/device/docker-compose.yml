@@ -2,23 +2,63 @@ version: '3'
 
 services:
 
-  device-service:
+  db:
     image: image2
-    #    ports:
-    #      - "8081:8081"
+    restart: always
     environment:
-      - DB_IP=host.docker.internal
+      POSTGRES_DB: 'device-db'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: '1969'
+    ports:
+      - "5432:5432"
+    networks:
+      - demo_net
+    volumes:
+      - my-db:/var/lib/postgresql/data
 
+  spring-demo-device:
+    build: .
+    restart: always
+    networks:
+      - demo_net
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/device-db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1969
+    depends_on:
+      - db
+    volumes:
+      - .m2:/root/.m2
+    deploy:
+      replicas: 2
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.device-ms.rule=PathPrefix(/device)"
-      - "traefik.http.services.device-ms.loadbalancer.server.port=8081"
+      - "traefik.http.routers.spring-demo-device.rule=Host(`spring-demo-device.localhost`)"
+      - "traefik.http.services.spring-demo-device.loadbalancer.server.port=8081"
 
+  reverse-proxy:
+    image: traefik:v3.2
+    command:
+      - --api.insecure=true
+      - --providers.docker
+      - --accesslog=true
+      - --accesslog.filepath=/var/log/traefik/access.log
+      - --log.level=DEBUG
+      - --entrypoints.web.address=:81
+    ports:
+      - "81:81"
+      - "8083:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik_logs:/var/log/traefik
     networks:
-      demo_net:
-        aliases:
-          - device-service
+      - demo_net
 
 networks:
   demo_net:
     external: true
+    driver: bridge
+
+volumes:
+  my-db:
+  traefik_logs:

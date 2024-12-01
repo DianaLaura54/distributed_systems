@@ -27,6 +27,20 @@ services:
         aliases:
           - person-service
 
+          
+  monitoring-service:
+    image: monitoring_img
+    environment:
+      - DB_IP=host.docker.internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.monitoring-ms.rule=PathPrefix(`/monitoring`)"
+      - "traefik.http.services.monitoring-ms.loadbalancer.server.port=8082"
+    networks:
+      demo_net:
+        aliases:
+          - monitoring-service         
+
   react:
     image: front_img
     environment:
@@ -39,18 +53,7 @@ services:
     networks:
       - demo_net
 
-  monitoring-service:
-    image: monitoring_img
-    environment:
-      - DB_IP=host.docker.internal
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.monitoring-ms.rule=PathPrefix(`/monitoring`)"
-      - "traefik.http.services.monitoring-ms.loadbalancer.server.port=8082"
-    networks:
-      demo_net:
-        aliases:
-          - monitoring-service
+
 
   traefik:
     image: traefik:v2.10

@@ -3,7 +3,7 @@ version: '3'
 services:
 
   person-service:
-    image: image3
+    image: person_img
     #    ports:
     #      - "8080:8080"
     environment:
@@ -11,7 +11,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.person-ms.rule=PathPrefix(`/person`)"
+      - "traefik.http.routers.person-ms.rule=PathPrefix(/person)"
       - "traefik.http.services.person-ms.loadbalancer.server.port=8080"
 
     networks:
