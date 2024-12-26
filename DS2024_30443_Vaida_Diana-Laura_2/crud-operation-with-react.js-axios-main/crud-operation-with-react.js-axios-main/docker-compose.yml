@@ -1,78 +1,41 @@
+#version: '3'
+#
+#services:
+#
+#  react:
+#    build:
+#      context: ./
+#      dockerfile: ./Dockerfile
+#    ports:
+#      - "3003:3000"
+#    environment:
+#      - BACKEND=172.30.0.2
+#    networks:
+#      demo_net:
+#        ipv4_address: 172.30.0.10
+#
+#networks:
+#  demo_net:
+#    external: true
+
 version: '3'
 
 services:
-  device-service:
-    image: image2
-    environment:
-      - DB_IP=host.docker.internal
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.device-ms.rule=PathPrefix(`/device`)"
-      - "traefik.http.services.device-ms.loadbalancer.server.port=8081"
-    networks:
-      demo_net:
-        aliases:
-          - device-service
-
-  person-service:
-    image: image3
-    environment:
-      - DB_IP=host.docker.internal
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.person-ms.rule=PathPrefix(`/person`)"
-      - "traefik.http.services.person-ms.loadbalancer.server.port=8080"
-    networks:
-      demo_net:
-        aliases:
-          - person-service
-
-          
-  monitoring-service:
-    image: monitoring_img
-    environment:
-      - DB_IP=host.docker.internal
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.monitoring-ms.rule=PathPrefix(`/monitoring`)"
-      - "traefik.http.services.monitoring-ms.loadbalancer.server.port=8082"
-    networks:
-      demo_net:
-        aliases:
-          - monitoring-service         
-
   react:
-    image: front_img
+    image: frontend_img
+#    ports:
+#      - "3003:3000"  # Map port 3003 on host to port 3000 in the container
     environment:
       - USER_SERVICE_HOST=person-service
       - DEVICE_SERVICE_HOST=device-service
+      
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    
     networks:
       - demo_net
-
-
-
-  traefik:
-    image: traefik:v2.10
-    container_name: traefik
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    networks:
-      demo_net:
-        aliases:
-          - traefik-service
 
 networks:
   demo_net:

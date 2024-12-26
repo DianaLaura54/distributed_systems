@@ -16,6 +16,7 @@ import Choice from './components/Choice';
 import Choice2 from './components/Choice2';
 import Choice3 from './components/Choice3';
 import Mapping from './components/Mapping';
+import Calendar from './components/Calendar';
 import './App.css';
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
               <Route path="/choice2" element={<Choice2 />} />
               <Route path="/mapping" element={<Mapping />} />
               <Route path="/read3" element={<Read3/>} />
+              <Route path="/calendar" element={<Calendar/>} />
         
             </Routes>
           </div>

@@ -14,7 +14,7 @@ import javax.validation.Valid;
 
 import java.util.List;
 
-import static org.hibernate.tool.schema.SchemaToolingLogging.LOGGER;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
