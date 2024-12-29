@@ -19,12 +19,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Disable CSRF protection
+        http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/device/**").permitAll() // Allow login endpoint
-                        .anyRequest().authenticated() // Secure all other endpoints
+                        .requestMatchers("/device/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class); // Add filter
+                .addFilterBefore(new JwtAuthFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

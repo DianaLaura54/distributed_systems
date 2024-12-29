@@ -14,10 +14,10 @@ import java.util.Map;
 @Component
 public class JwtUtils {
 
-    private static final String SECRET_KEY  = "xyggxfgcfguyuyyuyuyuyuyuyuycgfucfgucghicghichgicg"; // Generate a secure key
+    private static final String SECRET_KEY  = "xyggxfgcfguyuyyuyuyuyuyuyuycgfucfgucghicghichgicg";
     private static final long jwtExpirationMs = 864000000;
 
-    // Generate a JWT token
+
     public static String generateToken(String userId, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", userId);
@@ -32,7 +32,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    // Validate a JWT token
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
@@ -43,7 +43,7 @@ public class JwtUtils {
         return false;
     }
 
-    // Extract username from the token
+
     public String getNameFromToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(SECRET_KEY)

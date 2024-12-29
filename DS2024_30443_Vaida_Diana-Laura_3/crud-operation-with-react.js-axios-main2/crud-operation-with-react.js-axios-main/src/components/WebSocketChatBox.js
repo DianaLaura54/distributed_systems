@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // Ensure jwt-decode is installed
+import { jwtDecode } from "jwt-decode";
 
 const WebSocketChatBox = () => {
     const [message, setMessage] = useState("");
@@ -8,12 +8,12 @@ const WebSocketChatBox = () => {
     const [socket, setSocket] = useState(null);
     const [typingUsers, setTypingUsers] = useState(new Set());
     const [error, setError] = useState("");
+    const [usersInChat, setUsersInChat] = useState(new Set()); // Track the users in chat
     const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
 
-        // Check if the user is logged in (valid token)
         if (!token || !verifyToken(token)) {
             navigate("/login");
             return;
@@ -21,17 +21,14 @@ const WebSocketChatBox = () => {
 
         const userFlag = `chatPageOpen_${token}`;
 
-        // If the user already has the chat page open, redirect them
         if (sessionStorage.getItem(userFlag)) {
             setError("You already have this page open in another tab.");
             navigate("/");
             return;
         }
 
-        // Mark this tab as having the session open
         sessionStorage.setItem(userFlag, "true");
 
-        // Listen for changes in localStorage (other tab closing or logging out)
         window.addEventListener("storage", handleStorageChange);
 
         const ws = new WebSocket("/ws");
@@ -56,7 +53,6 @@ const WebSocketChatBox = () => {
         };
 
         return () => {
-            // Clean up the session on component unmount
             ws.close();
             sessionStorage.removeItem(userFlag);
             window.removeEventListener("storage", handleStorageChange);
@@ -81,9 +77,8 @@ const WebSocketChatBox = () => {
     };
 
     const handleStorageChange = (event) => {
-        // If the session flag was removed (e.g., by another tab), log the user out
         if (event.key === `chatPageOpen_${localStorage.getItem("token")}` && event.newValue === null) {
-            navigate("/login"); // Redirect user to login page or home
+            navigate("/login");
         }
     };
 
@@ -97,19 +92,56 @@ const WebSocketChatBox = () => {
                 return updatedUsers;
             });
         } else if (data.startsWith("Message:")) {
+            const messageContent = data.substring(8);
+            const messageId = generateMessageId();
             setChatMessages((prevMessages) => [
                 ...prevMessages,
-                data.substring(8),
+                { messageId, content: messageContent, status: "sent", seenBy: new Set() },
             ]);
             setTypingUsers(new Set());
+        } else if (data.startsWith("SEEN:")) {
+            const messageId = data.substring(5);
+            markMessageAsSeen(messageId);
+        } else if (data.startsWith("USER_JOINED:")) {
+            const userName = data.substring(12); // Extract user name
+            setUsersInChat((prevUsers) => new Set(prevUsers.add(userName)));
+        }
+    };
+
+    const generateMessageId = () => {
+        return Math.random().toString(36).substring(2, 9); // Simple unique ID generator
+    };
+
+    const markMessageAsSeen = (messageId) => {
+        // Mark the message as seen by the current user
+        setChatMessages((prevMessages) => {
+            const updatedMessages = prevMessages.map((msg) => {
+                if (msg.messageId === messageId) {
+                    const seenBy = new Set(msg.seenBy);
+                    seenBy.add(localStorage.getItem("name"));
+                    return { ...msg, seenBy };
+                }
+                return msg;
+            });
+            return updatedMessages;
+        });
+
+        // Check if all users have seen the message
+        const message = chatMessages.find((msg) => msg.messageId === messageId);
+        if (message && message.seenBy.size === usersInChat.size) {
+            notifySenderMessageSeen(messageId);
         }
     };
 
     const sendMessage = () => {
         if (socket && socket.readyState === WebSocket.OPEN) {
+            const messageId = generateMessageId();
             const formattedMessage = `${localStorage.getItem("name")}: ${message}`;
             socket.send(formattedMessage);
-            setChatMessages((prevMessages) => [...prevMessages, formattedMessage]);
+            setChatMessages((prevMessages) => [
+                ...prevMessages,
+                { messageId, content: formattedMessage, status: "sent", seenBy: new Set() },
+            ]);
             setMessage("");
             setTypingUsers((prevUsers) => {
                 const updatedUsers = new Set(prevUsers);
@@ -117,6 +149,9 @@ const WebSocketChatBox = () => {
                 return updatedUsers;
             });
             socket.send("STOP_TYPING");
+
+            // Save the message ID in the seen map for future checks
+            setUsersInChat((prevUsers) => new Set(prevUsers.add(localStorage.getItem("name"))));
         } else {
             console.error("WebSocket is not connected");
             setError("WebSocket is not connected. Please refresh the page.");
@@ -148,7 +183,7 @@ const WebSocketChatBox = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("name");
         sessionStorage.removeItem(userFlag);
-        window.localStorage.setItem(userFlag, null); // Clear flag in localStorage for all tabs
+        window.localStorage.setItem(userFlag, null);
         navigate("/login");
     };
 
@@ -156,7 +191,19 @@ const WebSocketChatBox = () => {
         navigate("/DevicePersonPage");
     };
 
-    // Define styles object here
+    const notifySenderMessageSeen = (messageId) => {
+        // Here we notify the sender (this could be improved further depending on your app logic)
+        const message = chatMessages.find((msg) => msg.messageId === messageId);
+        if (message) {
+            socket.send(`SEEN:${messageId}`);
+            setChatMessages((prevMessages) =>
+                prevMessages.map((msg) =>
+                    msg.messageId === messageId ? { ...msg, status: "seen" } : msg
+                )
+            );
+        }
+    };
+
     const styles = {
         chatContainer: {
             display: "flex",
@@ -260,7 +307,12 @@ const WebSocketChatBox = () => {
                     {chatMessages.map((msg, index) => (
                         <div key={index} style={styles.chatMessage}>
                             <div style={styles.chatAvatar}>💬</div>
-                            <div style={styles.chatText}>{msg}</div>
+                            <div style={styles.chatText}>{msg.content}</div>
+                            {msg.status === "seen" && (
+                                <div style={{ fontSize: "12px", color: "gray" }}>
+                                    Seen by all
+                                </div>
+                            )}
                         </div>
                     ))}
                     {[...typingUsers].map((user, index) => (
@@ -273,26 +325,22 @@ const WebSocketChatBox = () => {
 
             <div style={styles.inputContainer}>
                 <input
+                    style={styles.inputField}
                     type="text"
                     value={message}
                     onChange={handleInputChange}
-                    placeholder="Type your message"
-                    style={styles.inputField}
+                    placeholder="Type a message..."
                 />
-                <button
-                    onClick={sendMessage}
-                    disabled={!message}
-                    style={styles.sendButton}
-                >
+                <button style={styles.sendButton} onClick={sendMessage}>
                     Send
                 </button>
             </div>
 
             <div style={styles.logoutContainer}>
-                <button onClick={redirectToDevicePersonPage} style={styles.redirectButton}>
+                <button style={styles.redirectButton} onClick={redirectToDevicePersonPage}>
                     Go to Device Person Page
                 </button>
-                <button onClick={handleLogout} style={styles.logoutButton}>
+                <button style={styles.logoutButton} onClick={handleLogout}>
                     Logout
                 </button>
             </div>

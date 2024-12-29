@@ -22,7 +22,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtils.validateToken(token)) {
             String username = jwtUtils.getNameFromToken(token);
-            // Optionally set user details into the SecurityContext if needed
+
         } else if (token != null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Invalid or expired JWT token");
